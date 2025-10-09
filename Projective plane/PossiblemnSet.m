@@ -1,0 +1,69 @@
+% This function inputs an IntermediateSet during generating a TypemnSet and
+% the remaining points and excluded points, and outputs if the set is consistent and 
+% if it can be generated using "chasing consequence" method.
+% RemainingSet contains all the possible points, and ExcludedSet contains
+% all the points have been excluded.
+function[Consistent,ChasingSet]=PossiblemnSet(IntermediateSet,RemainingSet,ExcludedSet)
+% We need to use all lines to test the IntermediateSet.
+global L;
+% Set m,n,K, for some fixed number to test the function. 
+% tm,tn are the needed numbers of line intersecting with the TypemnSet.
+global m; global n; global K; global tm; global tn;
+% Initialize the ChasingSet.
+ChasingSet=[];
+% Use LIIntermediateSet to record the intersection number of line and Intermediate set,
+% and LIExcludedSet to record intersection of excluded set respectively.
+LIIntermediateSet=[]; LIRemainingSet=[];
+
+% Test all the lines in L for the NewSet one by one.
+for i=1:size(L,1)
+    % If the IntermediateSet intersects some line l with more than n(>m) elements,
+    % then terminate this process.
+    [kI,]=InterNumKL(IntermediateSet,L(i,:));
+    % We need to record the intersections of lines and IntermediateSet,
+    % since we need to chase the consequence. The cost here can be overlooked.
+    if kI>n
+        Consistent=0; return;
+    else 
+        LIIntermediateSet=[LIIntermediateSet,kI];
+        % kR is the intersection number of line L(i,:) and RemainingSet.
+        % RowIdx is the index of points in the remaining set and the line, 
+        % which means the index is according to the RemainingSet.
+        [kR,RowIdx]=InterNumKL(RemainingSet,L(i,:));
+        % If the points in the remaining set adding the points in the
+        % intermediate set for line L(i,:) still cannot attain m, then this
+        % set cannot be a type (m,n) set.
+        if kR+kI<m Consistent=0; return;
+        % If intermediate set and line intersect more than n points, then this cannot be a type (m,n) set.
+        elseif kI>n Consistent=0; return;
+        % If the line and intermediate set intersect more than m points,
+        % and less than n. Then discuss the remaining set and use chasing consequence method. 
+        elseif kI>m
+            % If line and intermediate set intersect more than m points, then drop it.
+            if kI+kR<n Consistent=0; return;
+            % Chasing Consequence!
+            elseif kI+kR==n
+                ChasingSet=RemainingSet(RowIdx,:);
+            end
+        end   
+        % In fact we can use more restriction like rhom, rhon, tm, tn to
+        % search faster.
+
+    end
+end
+% If all lines fit the set K appropriately, then return consistent.
+Consistent=1;
+
+
+
+% This function count the number of points both in point set and on line l.
+% The parameter InterNumL return the number of intersection, and RowIdx
+% return the index of the points in NewSet and the line l.
+function[InterNumL,RowIdx]=InterNumKL(NewSet,l)
+% Initialize the returned value.
+RowIdx=[]; InterNumL=0;
+lMat=cell2mat(l');
+% The function ismember is pretty powerful, so just compare two matrix is enough.
+IndexVector=ismember(NewSet,lMat,'rows');
+InterNumL=sum(IndexVector);
+RowIdx=find(IndexVector);
