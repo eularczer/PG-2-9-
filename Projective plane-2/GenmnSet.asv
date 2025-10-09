@@ -1,0 +1,85 @@
+% This function is to generate all type (m,n) sets recursively.
+% No parameters are needed to input since all we need is global variable P,L.
+function[AllTypemnSet]=GenmnSet()
+% AllTypemnSet is used as a global variable to receive the all subsets output in
+% the recursive function.
+global AllTypemnSet;
+AllTypemnSet={};
+% Then we recursively discuss whether every point in type(m,n) set. The set
+% size is determined (calculated by (m,n)) by K.
+global P; global NumP;
+
+
+
+% We roughly remove automorphism by setting the first sevral points in TypemnSet.
+% We directly set a point e, and from this point to construct the TypemnSet.
+% The leader orbit ci(1<=i<=m) are picked from the line l1 which is also
+% set by us artificially. (ci is not implemented now, since it depends on the value of m and n.)
+% See Sets of Type (m,n) in the affine and projective planes of order nine,
+% Penttila, Royle, 1995, Section 3, paragraph 3.
+e=P(1,:);
+% Moreover, when using the Exclusded set and RemainingSet simultaneously,
+% we can make the search tree shorter.
+ElementwiseGen(e,P(2:NumP,:),e);
+
+
+
+% RemainingSets are the points to be added to the type(m,n) set, and
+% IntermediateSet is the generating type(m,n) set in process. 
+% According to the paper, using the excluded set to "chasing consequence"
+% can be more efficient. 
+function ElementwiseGen(IntermediateSet,RemainingSet,ExcludedSet)
+% K is the size of TypemnSet in the final.
+global AllTypemnSet; global K;
+
+% If the set of size K has been constructed, then check if it is of type (m,n).
+if size(IntermediateSet,1)==K
+    [mnSetOrNot,LIntersection]=CheckmnSet(IntermediateSet);
+    if mnSetOrNot
+        % transform the matrix to the cell. More important, at the last
+        % column to add a line intersection number for this type (m,n) set.
+        AllTypemnSet=[AllTypemnSet;[mat2cell(IntermediateSet,ones(1,size(IntermediateSet,1)),size(IntermediateSet,2))',LIntersection]];
+        % In most general case we do not need the LIntersection number.
+        %AllTypemnSet=[AllTypemnSet;mat2cell(IntermediateSet,ones(1,size(IntermediateSet,1)),size(IntermediateSet,2))'];
+    end
+
+% If the RemainingSet is not possible to fill the IntermediateSet to k many
+% elements, then directly let the recursive branch go die.
+% If the set still needs to be constructed, then proceed.
+elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
+    % Evaluate the IntermediateSet and RemainingSet and ExcludedSet. Find
+    % the unique adaptable set of points if possible. For example, in PG(2,4) 
+    % a line l intersects the RemainingSet of 2 points, and ExcludedSet of
+    % 2 point, then to find a type (1,3) set the only point in the line
+    % must be added to the IntermediateSet. 
+    % If unique adaptable set cannot be found, we just add 1 point from RemainingSet.
+    % Since the paper call this method "chasing consequence", ChasingSet is
+    % used to contain the returning set of points using this method.
+    [Consistent,ChasingSet]=PossiblemnSet(IntermediateSet,RemainingSet,ExcludedSet);
+    % If the IntermediateSet is consistent, then we proceed, else drop it.
+    % Since the set is not tested after constructing in the preceding recursion.
+    if Consistent
+        % If the ChasingSet is empty, which means no chasing consequence
+        % occur, then we fork the recursion to search.
+        if isempty(ChasingSet)
+            % The forked recursive searches are the one containing next
+            % point and the one not containing it.     
+            ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:),ExcludedSet);
+            ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:),[ExcludedSet;RemainingSet(1,:)]); 
+        % If the ChasingSet is not empty, then first add the Chasin
+        elseif ~isempty(ChasingSet)
+            ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet(2:size(RemainingSet,1),:),ExcludedSet);
+    % If the IntermediateSet is inconsistent after last construction, terminate the forked process.
+    else
+        return;
+    end
+end
+
+
+
+
+
+
+
+
+
