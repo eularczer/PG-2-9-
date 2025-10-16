@@ -18,19 +18,17 @@ global P; global NumP;
 % See Sets of Type (m,n) in the affine and projective planes of order nine,
 % Penttila, Royle, 1995, Section 3, paragraph 3.
 e=P(1,:);
-% Moreover, when using the Exclusded set and RemainingSet simultaneously,
-% we can make the search tree shorter.
-ElementwiseGen(e,P(2:NumP,:),e);
+% Use IntermediateSet and RemainingSet simultaneously is enough, ExcludedSet 
+% is not needed since it has little use and can be deduced from those two sets.
+ElementwiseGen(e,P(2:NumP,:));
 
 
 
 % RemainingSets are the points to be added to the type(m,n) set, and
 % IntermediateSet is the generating type(m,n) set in process. 
-% According to the paper, using the excluded set to "chasing consequence"
-% can be more efficient. 
-function ElementwiseGen(IntermediateSet,RemainingSet,ExcludedSet)
+function ElementwiseGen(IntermediateSet,RemainingSet)
 % K is the size of TypemnSet in the final.
-global AllTypemnSet; global K;
+global AllTypemnSet; global K; 
 
 % If the IntermediateSet has size larger than K, then it means the chasing
 % consequence adding too many points, So we ignore it.
@@ -58,24 +56,31 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
     % If unique adaptable set cannot be found, we just add 1 point from RemainingSet.
     % Since the paper call this method "chasing consequence", ChasingSet is
     % used to contain the returning set of index in RemainingSet.
-    [Consistent,ChasingSet]=PossiblemnSet(IntermediateSet,RemainingSet,ExcludedSet);
+    [Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet);
     % If the IntermediateSet is consistent, then we proceed, else drop it.
     % Since the set is not tested after constructing in the preceding recursion.
     if Consistent
         % If the ChasingSet is empty, which means no chasing consequence
         % occur, then we fork the recursion to search.
-        if isempty(ChasingSet)
+        if isempty(ChasingSetIndex) && isempty(ExcludingIndex)
             % The forked recursive searches are the one containing next
             % point and the one not containing it.     
-            ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:),ExcludedSet);
-            ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:),[ExcludedSet;RemainingSet(1,:)]); 
+            ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:));
+            ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:)); 
         % If the ChasingSet is not empty, then first add the ChasingSet to
         % the IntermediateSet, then remove the ChasingSet from RemainingSet,
         % then add it to the ExcludedSet.
-        elseif ~isempty(ChasingSet)
-            RowIdx=find(ismember(RemainingSet,ChasingSet,'rows'))';
-            RemainingSet(RowIdx,:)=[];
-            ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet,ExcludedSet);
+        elseif ~isempty(ChasingSetIndex)
+            %RowIndex=find(ismember(RemainingSet,ChasingSet,'rows'))';
+            ChasingSet=RemainingSet(ChasingSetIndex,:);
+            RemainingSet(ChasingSetIndex,:)=[];
+            ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet);
+        % If the ExcludingIndex is not emoty, then it means for some l\in L
+        % kI of l is reached n and so all the other points both on the line
+        % and RemainingSet need to be removed from RemainingSet.
+        elseif ~isempty(ExcludingIndex)
+            RemainingSet(ExcludingIndex,:)=[];
+            ElementwiseGen(IntermediateSet,RemainingSet);
         end
     % If the IntermediateSet is inconsistent after last construction, ignore it.
     else

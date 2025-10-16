@@ -27,20 +27,19 @@ for i=1:NumVer
     while ~isempty(SecondPoint)
         % Linear span the line and find the other points on the line.
         RowIdx = find(ismember(P,LinearSpan(P(i,:),P(SecondPoint(1),:)), 'rows'));
-        % Adding the other points to the line record via adding index.
-        % Transfer the index to the matrix.
+        % Adding the other points to the line record via transforming the index into points.
         L{r,1}=P(i,:); L{r,2}=P(SecondPoint(1),:); 
         for k=1:length(RowIdx)
             L{r,2+k}=P(RowIdx(k),:);
-        end
-        r=r+1;
+        end        
         % Removing the repeated generated line in next turns.
-        SecondPoint(1)=[];
         for k=1:length(RowIdx)
             % This SecondPoint==RowIdx(k) returns the index of repeated
             % index RowIdx(k) in SecondPoint. Since maybe some index in
             % RowIdx(k) which needs to be removed is already removed.
             SecondPoint(SecondPoint==RowIdx(k))=[];
         end
+        SecondPoint(1)=[];
+        r=r+1;
     end 
 end

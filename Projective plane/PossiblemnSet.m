@@ -1,19 +1,23 @@
 % This function inputs an IntermediateSet during generating a TypemnSet and
-% the remaining points and excluded points, and outputs if the set is consistent and 
-% if it can be generated using "chasing consequence" method.
-% RemainingSet contains all the possible points, and ExcludedSet contains
-% all the points have been excluded.
-function[Consistent,ChasingSet]=PossiblemnSet(IntermediateSet,RemainingSet,ExcludedSet)
+% the remaining points and excluded points. 
+% RemainingSet contains all the possible points.
+% Use "chasing consequence" method by testing kI+kR==n, which includes
+% adding all other points both in RemainingSet and line, and also exclude
+% all other points both in RemainingSet and line if kI==n. 
+% So ExcludingIndex returns index of all the points need to be excluded if kI==n.
+function[Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet)
 % We need to use all lines to test the IntermediateSet.
 global L;
 % Set m,n,K, for some fixed number to test the function. 
 % tm,tn are the needed numbers of line intersecting with the TypemnSet.
 global m; global n; global K; global tm; global tn;
-% Initialize the ChasingSet.
-ChasingSet=[];
+% Initialize the ChasingSet, Consistent and ExcludingIndex.
+Consistent=1; ChasingSetIndex=[]; ExcludingIndex=[];
 % Use LIIntermediateSet to record the intersection number of line and Intermediate set,
-% and LIExcludedSet to record intersection of excluded set respectively.
-LIIntermediateSet=[]; LIRemainingSet=[];
+LIIntermediateSet=[]; LIRemainingSet=[]; 
+
+% If IntermediateSet and RemainingSet cannot attach K, then drop it.
+if size(IntermediateSet,1)+size(RemainingSet,1)<K Consistent=0; return; end
 
 % Test all the lines in L for the NewSet one by one.
 for i=1:size(L,1)
@@ -29,7 +33,7 @@ for i=1:size(L,1)
         % kR is the intersection number of line L(i,:) and RemainingSet.
         % RowIdx is the index of points in the remaining set and the line, 
         % which means the index is according to the RemainingSet.
-        [kR,RowIdx]=InterNumKL(RemainingSet,L(i,:));
+        [kR,RowIndex]=InterNumKL(RemainingSet,L(i,:));
         % If the points in the remaining set adding the points in the
         % intermediate set for line L(i,:) still cannot attain m, then this
         % set cannot be a type (m,n) set.
@@ -38,32 +42,40 @@ for i=1:size(L,1)
         elseif kI>n Consistent=0; return;
         % If the line and intermediate set intersect more than m points,
         % and less than n. Then discuss the remaining set and use chasing consequence method. 
-        elseif kI>m
+        elseif kI>m && kI<n
             % If line and intermediate set intersect more than m points, then drop it.
             if kI+kR<n Consistent=0; return;
             % Chasing Consequence!
             elseif kI+kR==n
-                ChasingSet=RemainingSet(RowIdx,:);
+                ChasingSetIndex=RowIndex; return;
+                %ChasingSet=RemainingSet(RowIndex,:); return;
             end
+        % If KI==n, then drop all the other points on the line which are
+        % in RemainingSet. 
+        elseif kI==n && kR~=0
+            ExcludingIndex=RowIndex; return;
         end   
-        % In fact we can use more restriction like rhom, rhon, tm, tn to
-        % search faster.
-
     end
 end
-% If all lines fit the set K appropriately, then return consistent.
-Consistent=1;
+% In fact we can use more restriction like rhom, rhon, sigmam, sigman, tm,
+% tn to search faster. But they are macro property which needs to be first
+% recorded then used. In fact they must be used, or Checkmn is too heavy burden.
+
+% tm and tn must be used, or the IntermediateSet would be too many.
+% This works efficient when LIIntermediateSet has a large size. Since tm,
+% tn can reflect the global property.
+if sum(LIIntermediateSet>m)>tn Consistent=0; return; end
 
 
 
 % This function count the number of points both in point set and on line l.
 % The parameter InterNumL return the number of intersection, and RowIdx
 % return the index of the points in NewSet and the line l.
-function[InterNumL,RowIdx]=InterNumKL(NewSet,l)
+function[InterNumL,RowIdx]=InterNumKL(TestSet,l)
 % Initialize the returned value.
 RowIdx=[]; InterNumL=0;
 lMat=cell2mat(l');
 % The function ismember is pretty powerful, so just compare two matrix is enough.
-IndexVector=ismember(NewSet,lMat,'rows');
+IndexVector=ismember(TestSet,lMat,'rows');
 InterNumL=sum(IndexVector);
 RowIdx=find(IndexVector);

@@ -1,7 +1,7 @@
 clear all; clearvars; 
 
-% Construct all the points on PG(2,2). All the points in the planes are 1
-% row and 3 column vectors in the linear space.
+%% Basic settings for linear spaces.
+% P and L are the points set and line set respectively.
 global P; global L;
 % Set D=3 as the projective plane dimension using vectors. Subsequent research may have D=4.
 % Set p as the character of a finite field, and h as the power. 
@@ -13,14 +13,13 @@ D=3; p=2; h=2;
 % First set q as the p^h inorder to simplify the results.
 q=p^h; NumP=(q^D-1)/(q-1); NumL=NumP;
 
-% Generate the points.
+%% Generate the points.
 GenPoints();
 
-% Genetrate the lines.
+%% Genetrate the lines.
 GenLines()
 
-
-
+%% Settings for the intersection set.
 % Set m,n, for some fixed number to test the function.
 global m; global n; global K; m=1; n=3;
 % K is the size of TypemnSet.
@@ -42,19 +41,15 @@ global sigmam; global sigman;
 rhom=(n*(q+1)-K-q)/(n-m); rhon=(K+q-m*(q+1))/(n-m); 
 sigmam=(n*(q+1)-K)/(n-m); sigman=(K-m*(q+1))/(n-m);
 
-% Find the intersection set type (m,n).
+%% Search the intersection set type (m,n).
 %AllTypemnSet=GenmnSetOld();
 %AllTypemnSet=GenAll3pointsSet();
 AllTypemnSet=GenmnSet();
 
-
-
-% Transform the hypergraph of (P,L) to bipartite graph and show it. 
+%% Transform the hypergraph of (P,L) to bipartite graph. 
 BiGraph=HypertoBiGraph();
 
-
-
-% Remove automorphisms from AllTypemnSet.
+%% Remove automorphisms from AllTypemnSet.
 % TypemnSet=NoAutoTypemnSet(BiGraph,AllTypemnSet);
 
 
