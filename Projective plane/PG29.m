@@ -9,7 +9,7 @@ global P; global L;
 % projective plane, they are the same. (In general projective planes, to
 % calculate NumL we need to calculate number of PGL matrix.)
 global D; global p; global h; global NumP; global NumL;
-D=3; p=2; h=2;
+D=3; p=3; h=2;
 % First set q as the p^h inorder to simplify the results.
 q=p^h; NumP=(q^D-1)/(q-1); NumL=NumP;
 
@@ -21,10 +21,10 @@ GenLines()
 
 %% Settings for the intersection set.
 % Set m,n, for some fixed number to test the function.
-global m; global n; global K; m=1; n=3;
-% K is the size of TypemnSet.
+global m; global n; global K; m=1; n=4;
+% K is the size of TypemnSet. 
 % In fact, K can only have two possible values after the assignment m,n. 
-K=9; 
+K=13; %m=1,n=3,K=9,7 is always a test set in PG(2,4).
 
 % After the setting of K, we can calculate the number of line which
 % intersects TypemnSet with m points and n points.
@@ -42,7 +42,7 @@ rhom=(n*(q+1)-K-q)/(n-m); rhon=(K+q-m*(q+1))/(n-m);
 sigmam=(n*(q+1)-K)/(n-m); sigman=(K-m*(q+1))/(n-m);
 
 %% Search the intersection set type (m,n).
-%AllTypemnSet=GenmnSetOld();
+%AllTypemnSet=GenmnSetOldV2();
 %AllTypemnSet=GenAll3pointsSet();
 AllTypemnSet=GenmnSet();
 

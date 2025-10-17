@@ -7,21 +7,20 @@ global AllTypemnSet;
 AllTypemnSet={};
 % Then we recursively discuss whether every point in type(m,n) set. The set
 % size is determined (calculated by (m,n)) by K.
-global P; global L; global NumP; global m; global n;
+global P; global NumP;
+
+
 
 % We roughly remove automorphism by setting the first sevral points in TypemnSet.
-% Directly set a point e in TypemnSet to remove automorphism is inefficient
-% anymore, we fix points in one line at first stage.
+% We directly set a point e, and from this point to construct the TypemnSet.
 % The leader orbit ci(1<=i<=m) are picked from the line l1 which is also
 % set by us artificially. (ci is not implemented now, since it depends on the value of m and n.)
-% Fork two branches to elementwisely generate the TypemnSet. One of the
-% contains the first m points in line one L1 and directly drops the other
-% points, and the second do the similar for first n points in L1.
-RemainingSet=P;
-IntermediateSet=cell2mat(L(1,[1:m])'); ExcludingIndex=find(ismember(P,cell2mat(L(1,:)'),'rows')); RemainingSet(ExcludingIndex',:)=[];
-ElementwiseGen(IntermediateSet,RemainingSet);
-IntermediateSet=cell2mat(L(1,[1:n])'); % The RemainingSet are the same as above.
-ElementwiseGen(IntermediateSet,RemainingSet);
+% See Sets of Type (m,n) in the affine and projective planes of order nine,
+% Penttila, Royle, 1995, Section 3, paragraph 3.
+e=P(1,:);
+% Use IntermediateSet and RemainingSet simultaneously is enough, ExcludedSet 
+% is not needed since it has little use and can be deduced from those two sets.
+ElementwiseGen(e,P(2:NumP,:));
 
 
 
@@ -57,7 +56,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
     % If unique adaptable set cannot be found, we just add 1 point from RemainingSet.
     % Since the paper call this method "chasing consequence", ChasingSet is
     % used to contain the returning set of index in RemainingSet.
-    [Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet);
+    [Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSetOldV2(IntermediateSet,RemainingSet);
     % If the IntermediateSet is consistent, then we proceed, else drop it.
     % Since the set is not tested after constructing in the preceding recursion.
     if Consistent
