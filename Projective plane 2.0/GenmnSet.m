@@ -19,15 +19,15 @@ global P; global L; global NumP; global m; global n;
 % points, and the second do the similar for first n points in L1.
 RemainingSet=P;
 IntermediateSet=cell2mat(L(1,[1:m])'); ExcludingIndex=find(ismember(P,cell2mat(L(1,:)'),'rows')); RemainingSet(ExcludingIndex',:)=[];
-ElementwiseGen(IntermediateSet,RemainingSet);
+ElementwiseGen(IntermediateSet,RemainingSet,[1,m]);
 IntermediateSet=cell2mat(L(1,[1:n])'); % The RemainingSet are the same as above.
-ElementwiseGen(IntermediateSet,RemainingSet);
+ElementwiseGen(IntermediateSet,RemainingSet,[1,n]);
 
 
 
 % RemainingSets are the points to be added to the type(m,n) set, and
 % IntermediateSet is the generating type(m,n) set in process. 
-function ElementwiseGen(IntermediateSet,RemainingSet)
+function ElementwiseGen(IntermediateSet,RemainingSet,SearchedLIndex)
 % K is the size of TypemnSet in the final.
 global AllTypemnSet; global K; 
 
@@ -37,7 +37,7 @@ if size(IntermediateSet,1)>K
 
 % If the set of size K has been constructed, then check if it is of type (m,n).
 elseif size(IntermediateSet,1)==K
-    [mnSetOrNot,LIntersection]=CheckmnSet(IntermediateSet);
+    [mnSetOrNot,LIntersection]=CheckmnSet(IntermediateSet,SearchedLIndex);
     if mnSetOrNot
         % transform the matrix to the cell. More important, at the last
         % column to add a line intersection number for this type (m,n) set.
@@ -57,7 +57,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
     % less than m points to have m points.
     % Since the paper call this method "chasing consequence", ChasingSetIndex is
     % used to contain the returning set of index in RemainingSet.
-    [Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet);
+    [Consistent,ChasingSetIndex,ExcludingIndex,SearchedLIndex]=PossiblemnSet(IntermediateSet,RemainingSet,SearchedLIndex);
     % If the IntermediateSet is consistent, then we proceed, else drop it.
     % Since the set is not tested after constructing in the preceding recursion.
     if Consistent
@@ -66,8 +66,8 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
         if isempty(ChasingSetIndex) && isempty(ExcludingIndex)
             % The forked recursive searches are the one containing next
             % point and the one not containing it.     
-            ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:));
-            ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:)); 
+            ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:),SearchedLIndex);
+            ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:),SearchedLIndex); 
         % If the ChasingSet is not empty, then folk the shorter search tree.
         % We can allow bushier search tree which means folk more than two search tree. 
         elseif ~isempty(ChasingSetIndex)
@@ -77,7 +77,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
             if isempty(ExcludingIndex) 
                 ChasingSet=RemainingSet(ChasingSetIndex,:);
                 RemainingSet(ChasingSetIndex,:)=[];
-                ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet);
+                ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet,SearchedLIndex);
             % Else if we can folk the bushier search tree to finish a
             % line's searching, then exclude the points from the line.
             % If condition permitted, use parfor. Parallel is powerful.
@@ -88,7 +88,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
                     % influencing the RemainingSet.
                     TempRemainingSet=RemainingSet;
                     TempRemainingSet([ChasingSetIndex(i,:),ExcludingIndex(i,:)],:)=[];
-                    ElementwiseGen([IntermediateSet;ChasingSet],TempRemainingSet);
+                    ElementwiseGen([IntermediateSet;ChasingSet],TempRemainingSet,SearchedLIndex);
                 end  
             end
         % If the ExcludingIndex is not emoty, then it means for some l\in L
@@ -96,7 +96,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
         % and RemainingSet need to be removed from RemainingSet.
         elseif ~isempty(ExcludingIndex)
             RemainingSet(ExcludingIndex,:)=[];
-            ElementwiseGen(IntermediateSet,RemainingSet);
+            ElementwiseGen(IntermediateSet,RemainingSet,SearchedLIndex);
         end
     % If the IntermediateSet is inconsistent after last construction, ignore it.
     else

@@ -5,8 +5,8 @@
 % all other points both in RemainingSet and line if kI==n. 
 % So ExcludingIndex returns index of all the points need to be excluded if kI==n.
 % And it can also add more than one point at a time by thouroughly searching a line.
-% 
-function[Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet)
+% Use SearchedLIndex, a n*2 matrix, to record the lineIndex has been search and intersections.
+function[Consistent,ChasingSetIndex,ExcludingIndex,SearchedLIndex]=PossiblemnSet(IntermediateSet,RemainingSet,SearchedLIndex)
 % We need to use all lines to test the IntermediateSet.
 global L;
 % Set m,n,K, for some fixed number to test the function. 
@@ -22,12 +22,18 @@ if size(IntermediateSet,1)+size(RemainingSet,1)<K Consistent=0; return; end
 
 % Test all the lines in L for the NewSet one by one.
 for i=1:size(L,1)
+    % If the line has been searched throughly, then skip the counting intersections.
+    SearchedOrNot=find(ismember(SearchedLIndex(:,1),i),1);
+    if  ~isempty(SearchedOrNot)
+        kI=SearchedLIndex(SearchedOrNot,2);
+        LIIntermediateSet=[LIIntermediateSet,kI]; LIRemainingSet=[LIRemainingSet,0];
+        continue;
+    end
     % If the IntermediateSet intersects some line l with more than n(>m) elements,
     % then terminate this process. 
     % kI is the intersection of line i and the Intermediate set, kR similar.
     kI=InterNumKL(IntermediateSet,L(i,:)); kR=0;
-    % We need to record the intersections of lines and IntermediateSet,
-    % since we need to chase the consequence. The cost here can be overlooked.
+    % We record the intersections of lines and IntermediateSet, the cost here can be overlooked.
     % If intermediate set and line intersect more than n points, then this cannot be a type (m,n) set.
     if kI>n
         Consistent=0; return;
@@ -46,7 +52,10 @@ for i=1:size(L,1)
         elseif kI<m && kI+kR<n 
             % A smaller type of Chasing consequence.
             if kI+kR==m 
-                ChasingSetIndex=RowIndex; return;
+                ChasingSetIndex=RowIndex; 
+                % Record the line is searched.
+                SearchedLIndex=[SearchedLIndex;[i,m]];
+                return;
             % If kI+kR>m, then return a combination of possible chasing
             % index, such as {1,3} are both possible, then return {1} and {3}.
             elseif kI+kR-m==1
@@ -55,6 +64,8 @@ for i=1:size(L,1)
                 for j=1:size(ChasingSetIndex,1)
                     ExcludingIndex=[ExcludingIndex;RowIndex(~ismember(RowIndex,ChasingSetIndex(j,:)))];
                 end
+                % Record the line is searched.
+                SearchedLIndex=[SearchedLIndex;[i,m]];
                 return;
             end
         % If the line and intermediate set intersect more than m points,
@@ -63,24 +74,34 @@ for i=1:size(L,1)
             % If line and intermediate set intersect more than m points, then drop it.
             if kI+kR<n Consistent=0; return;
             % Chasing Consequence!
-            elseif kI+kR==n ChasingSetIndex=ColumnIndex; return;                
+            elseif kI+kR==n 
+                ChasingSetIndex=ColumnIndex; 
+                % Record the line is searched.
+                SearchedLIndex=[SearchedLIndex;[i,n]];
+                return;                
             % If kI+kR>n, then return a combination of possible chasing
-            % index, such as {1,3} are both possible, then return {1} and {3}.
+            % index, such as {1,3} are both possible, then return {1} and {3}. 
+            % This chasing will decrease the speed, increasing CheckmnSet calls.
             elseif kI+kR-n==1
                 ChasingSetIndex=nchoosek(RowIndex,n-kI);
                 % We generate the Excluding Set.
                 for j=1:size(ChasingSetIndex,1)
                     ExcludingIndex=[ExcludingIndex;RowIndex(~ismember(RowIndex,ChasingSetIndex(j,:)))];
                 end
+                SearchedLIndex=[SearchedLIndex;[i,n]];
                 return;
             end
         % If KI==n, then drop all the other points on the line which are
         % in RemainingSet. 
-        elseif kI==n && kR~=0
-            % Try to make ExcludingIndex a multirows set, and one time
-            % remove many points on the many lines. Without return can do this.
-            % Deal with one line at a time seems more efficient. Use return.
-            ExcludingIndex=[ExcludingIndex;ColumnIndex]; return;
+        elseif kI==n 
+            if kR~=0
+                % Try to make ExcludingIndex a multirows set, and one time
+                % remove many points on the many lines. Without return can do this.
+                % Deal with one line at a time seems more efficient. Use return.
+                ExcludingIndex=[ExcludingIndex;ColumnIndex]; 
+                SearchedLIndex=[SearchedLIndex;[i,n]];
+                return;
+            end
         end   
     end
     % If the test of line i is neither terminated by inconsistent nor by
@@ -91,8 +112,8 @@ end
 % tn to search faster. But they are macro property which needs to be first
 % recorded then used. In fact they must be used, or Checkmn will be busy.
 
-% This works efficient when LIIntermediateSet has a large size. Since tm,
-% tn can reflect the global property.
+% This works when LIIntermediateSet has a large size. Since tm, tn can
+% reflect the global property.
 if sum(LIIntermediateSet>m)>tn Consistent=0; return; end
 
 
@@ -114,6 +135,6 @@ function InterNumL=InterNumKL(NewSet,l)
 % Initialize the returned value.
 InterNumL=0;
 lMat=cell2mat(l');
-% The function ismember is pretty powerful, so just compare two matrix is enough.
+% The function ismember is pretty powerful, so just compare two matrix.
 IndexVector=ismember(NewSet,lMat,'rows');
 InterNumL=sum(IndexVector);
