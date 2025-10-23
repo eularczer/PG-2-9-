@@ -49,13 +49,13 @@ elseif size(IntermediateSet,1)==K
 % elements, then directly let the recursive branch go die.
 % If the set still needs to be constructed, then proceed.
 elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
-    % Evaluate the IntermediateSet and RemainingSet and ExcludedSet. Find
-    % the unique adaptable set of points if possible. For example, in PG(2,4) 
-    % a line l intersects the RemainingSet of 2 points, and ExcludedSet of
-    % 2 point, then to find a type (1,3) set the only point in the line
+    % Evaluate the IntermediateSet and RemainingSet. Find the unique adaptable
+    % set of points if possible. For example, in PG(2,4) a line l intersects the
+    % RemainingSet of 2 points then to find a type (1,3) set the only point in the line
     % must be added to the IntermediateSet. 
-    % If unique adaptable set cannot be found, we just add 1 point from RemainingSet.
-    % Since the paper call this method "chasing consequence", ChasingSet is
+    % If unique adaptable set cannot be found, we just force a line having
+    % less than m points to have m points.
+    % Since the paper call this method "chasing consequence", ChasingSetIndex is
     % used to contain the returning set of index in RemainingSet.
     [Consistent,ChasingSetIndex,ExcludingIndex]=PossiblemnSet(IntermediateSet,RemainingSet);
     % If the IntermediateSet is consistent, then we proceed, else drop it.
@@ -68,14 +68,29 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
             % point and the one not containing it.     
             ElementwiseGen([IntermediateSet;RemainingSet(1,:)],RemainingSet(2:size(RemainingSet,1),:));
             ElementwiseGen(IntermediateSet,RemainingSet(2:size(RemainingSet,1),:)); 
-        % If the ChasingSet is not empty, then first add the ChasingSet to
-        % the IntermediateSet, then remove the ChasingSet from RemainingSet,
-        % then add it to the ExcludedSet.
+        % If the ChasingSet is not empty, then folk the shorter search tree.
+        % We can allow bushier search tree which means folk more than two search tree. 
         elseif ~isempty(ChasingSetIndex)
-            %RowIndex=find(ismember(RemainingSet,ChasingSet,'rows'))';
-            ChasingSet=RemainingSet(ChasingSetIndex,:);
-            RemainingSet(ChasingSetIndex,:)=[];
-            ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet);
+            % If the excludingIndex is empty, then it means we just have
+            % one chasing set, then add the chasing set to IntermediateSet
+            % to folk the search tree.
+            if isempty(ExcludingIndex) 
+                ChasingSet=RemainingSet(ChasingSetIndex,:);
+                RemainingSet(ChasingSetIndex,:)=[];
+                ElementwiseGen([IntermediateSet;ChasingSet],RemainingSet);
+            % Else if we can folk the bushier search tree to finish a
+            % line's searching, then exclude the points from the line.
+            % If condition permitted, use parfor. Parallel is powerful.
+            else
+                for i=1:size(ChasingSetIndex,1)
+                    ChasingSet=RemainingSet(ChasingSetIndex(i,:),:);
+                    % Use TempRemainingSet to generate every search tree without
+                    % influencing the RemainingSet.
+                    TempRemainingSet=RemainingSet;
+                    TempRemainingSet([ChasingSetIndex(i,:),ExcludingIndex(i,:)],:)=[];
+                    ElementwiseGen([IntermediateSet;ChasingSet],TempRemainingSet);
+                end  
+            end
         % If the ExcludingIndex is not emoty, then it means for some l\in L
         % kI of l is reached n and so all the other points both on the line
         % and RemainingSet need to be removed from RemainingSet.
