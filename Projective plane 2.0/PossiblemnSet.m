@@ -82,7 +82,8 @@ for i=1:size(L,1)
             % If kI+kR>n, then return a combination of possible chasing
             % index, such as {1,3} are both possible, then return {1} and {3}. 
             % This chasing will decrease the speed, increasing CheckmnSet calls.
-            elseif kI+kR-n==1
+            % elseif kI+kR-n==1
+            else
                 ChasingSetIndex=nchoosek(RowIndex,n-kI);
                 % We generate the Excluding Set.
                 for j=1:size(ChasingSetIndex,1)
@@ -94,12 +95,12 @@ for i=1:size(L,1)
         % If KI==n, then drop all the other points on the line which are
         % in RemainingSet. 
         elseif kI==n 
+            SearchedLIndex=[SearchedLIndex;[i,n]];
             if kR~=0
                 % Try to make ExcludingIndex a multirows set, and one time
                 % remove many points on the many lines. Without return can do this.
                 % Deal with one line at a time seems more efficient. Use return.
-                ExcludingIndex=[ExcludingIndex;ColumnIndex]; 
-                SearchedLIndex=[SearchedLIndex;[i,n]];
+                ExcludingIndex=[ExcludingIndex;ColumnIndex];                
                 return;
             end
         end   

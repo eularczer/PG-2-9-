@@ -7,7 +7,7 @@ global AllTypemnSet;
 AllTypemnSet={};
 % Then we recursively discuss whether every point in type(m,n) set. The set
 % size is determined (calculated by (m,n)) by K.
-global P; global L; global NumP; global m; global n;
+global P; global L; global NumP; global m; global n; global q;
 
 % We roughly remove automorphism by setting the first sevral points in TypemnSet.
 % Directly set a point e in TypemnSet to remove automorphism is inefficient
@@ -18,14 +18,23 @@ global P; global L; global NumP; global m; global n;
 % contains the first m points in line one L1 and directly drops the other
 % points, and the second do the similar for first n points in L1.
 RemainingSet=P;
-IntermediateSet=cell2mat(L(1,[1:m])'); ExcludingIndex=find(ismember(P,cell2mat(L(1,:)'),'rows')); RemainingSet(ExcludingIndex',:)=[];
+
+%% Roughly removing automorphism. 
+% We can directly set line 1 to have m points, and add another line 2 points to it.
+IntermediateSet=cell2mat(L(1,[1:m])'); ExcludingIndex=find(ismember(P,cell2mat(L(1,:)'),'rows')); 
+ExcludingIndex=[ExcludingIndex;1+(q+1)]; IntermediateSet=[IntermediateSet;P(1+(q+1),:)];
+RemainingSet(ExcludingIndex',:)=[];
 ElementwiseGen(IntermediateSet,RemainingSet,[1,m]);
-IntermediateSet=cell2mat(L(1,[1:n])'); % The RemainingSet are the same as above.
-ElementwiseGen(IntermediateSet,RemainingSet,[1,n]);
+% % The followings are not valid, since parallel calculation cannot have
+% % recuision function.
+% parfor i=1:3
+%     i
+%     ElementwiseGen(IntermediateSet,RemainingSet,[1,m]);
+% end
 
 
 
-% RemainingSets are the points to be added to the type(m,n) set, and
+%% RemainingSets are the points to be added to the type(m,n) set, and
 % IntermediateSet is the generating type(m,n) set in process. 
 function ElementwiseGen(IntermediateSet,RemainingSet,SearchedLIndex)
 % K is the size of TypemnSet in the final.
@@ -48,7 +57,7 @@ elseif size(IntermediateSet,1)==K
 % If the RemainingSet is not possible to fill the IntermediateSet to k many
 % elements, then directly let the recursive branch go die.
 % If the set still needs to be constructed, then proceed.
-elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
+elseif all(size(IntermediateSet,1)+size(RemainingSet,1)>=K) && all(~isempty(RemainingSet))
     % Evaluate the IntermediateSet and RemainingSet. Find the unique adaptable
     % set of points if possible. For example, in PG(2,4) a line l intersects the
     % RemainingSet of 2 points then to find a type (1,3) set the only point in the line
@@ -82,6 +91,7 @@ elseif size(IntermediateSet,1)+size(RemainingSet,1)>=K && ~isempty(RemainingSet)
             % line's searching, then exclude the points from the line.
             % If condition permitted, use parfor. Parallel is powerful.
             else
+                % Can not use parallel calculation.
                 for i=1:size(ChasingSetIndex,1)
                     ChasingSet=RemainingSet(ChasingSetIndex(i,:),:);
                     % Use TempRemainingSet to generate every search tree without
