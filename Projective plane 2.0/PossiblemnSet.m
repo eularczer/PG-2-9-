@@ -81,9 +81,9 @@ for i=1:size(L,1)
                 return;                
             % If kI+kR>n, then return a combination of possible chasing
             % index, such as {1,3} are both possible, then return {1} and {3}. 
-            % This chasing will decrease the speed, increasing CheckmnSet calls.
-            % elseif kI+kR-n==1
-            else
+            % This chasing will decrease the speed, increasing CheckmnSet calls. 
+            % It is a balance. Never chasing all in large order plane.
+            elseif kI+kR-n==1
                 ChasingSetIndex=nchoosek(RowIndex,n-kI);
                 % We generate the Excluding Set.
                 for j=1:size(ChasingSetIndex,1)

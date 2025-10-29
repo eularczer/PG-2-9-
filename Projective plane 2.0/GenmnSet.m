@@ -25,12 +25,8 @@ IntermediateSet=cell2mat(L(1,[1:m])'); ExcludingIndex=find(ismember(P,cell2mat(L
 ExcludingIndex=[ExcludingIndex;1+(q+1)]; IntermediateSet=[IntermediateSet;P(1+(q+1),:)];
 RemainingSet(ExcludingIndex',:)=[];
 ElementwiseGen(IntermediateSet,RemainingSet,[1,m]);
-% % The followings are not valid, since parallel calculation cannot have
-% % recuision function.
-% parfor i=1:3
-%     i
-%     ElementwiseGen(IntermediateSet,RemainingSet,[1,m]);
-% end
+% Maybe in PG(3,9), we cna directly remove two nonintersecting lines, with
+% 2 m intersection or 1 m 1 n.
 
 
 
@@ -91,7 +87,7 @@ elseif all(size(IntermediateSet,1)+size(RemainingSet,1)>=K) && all(~isempty(Rema
             % line's searching, then exclude the points from the line.
             % If condition permitted, use parfor. Parallel is powerful.
             else
-                % Can not use parallel calculation.
+                % Can not use parallel calculation. Nobody knows what will happen.
                 for i=1:size(ChasingSetIndex,1)
                     ChasingSet=RemainingSet(ChasingSetIndex(i,:),:);
                     % Use TempRemainingSet to generate every search tree without
