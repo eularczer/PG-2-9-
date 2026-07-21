@@ -1,14 +1,12 @@
-% This function add up the two vectors in the finite field.
+% This function add up two vectors in the finite field.
 % The output should be a set of vectors which excludes input u,v. 
 function[w]=LinearSpan(u,v)
-% Calculate u+v in finite field of PG(D-1,q)
-% First we introduce some global variables to pick the variable.
+% The configuration for finite field. 
 global D; global p; global h;
-% NumPOnL is calculated in projective plane that the number of points on a
-% line, since we have line and point regularities. 
-NumPOnL=p^h+1;
-% dim is to record how many positional additional to make. w should be a
-% matrix whose rows compose a point. And it totally has NumPOnL-2 points as
+% NumPOnL is the number of points on a line, which is alway q+1 even in PG(3,q). 
+NumPOnL=p^h+1; 
+% dim is to record how many positional additional to make. 
+% w should be a matrix whose rows are points, and totally has NumPOnL-2 rows.
 % the generating points on a line.
 dim=D; w=zeros(1,dim);
 
@@ -32,6 +30,8 @@ if p==2 && h==1
             end
         end
     end 
+
+
 %% Calculation table in PG(D,4)
 elseif p==2 && h==2
     % If v is empty, then do the multiplication to u to remove repeated points 
@@ -52,7 +52,7 @@ elseif p==2 && h==2
         end
         % After generating some points representation for the line, we need 
         % to extend them to the all possible points representation since for
-        % example L(010,001) can be 012 which is not in the cannonical
+        % example L(010,001) can be 021 which is not in the cannonical
         % representation in P.
         AllRepOfP=[];
         % i is the point in w being found all the representations. k is the
@@ -67,6 +67,8 @@ elseif p==2 && h==2
             end
         end
     end
+    
+    
 %% Calculation table in PG(D,3)
 elseif p==3 && h==1
     % If v is empty, then do the multiplication to u to remove repeated points 
