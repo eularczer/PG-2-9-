@@ -8,23 +8,23 @@ function Configuration()
     global m; global n; global K;
     
     % Create an input dialog box
-    prompt = {'Over finite field q:', 'Affine space or dual space or not','m','n','K'};  % Prompt strings
+    prompt = {'Over finite field q:', 'Projective space dimension','m','n','K'};  % Prompt strings
     dlgtitle = 'The Configuration';  % Dialog title
     dims = [1,50];  % Input field size [rows cols]
     % m=1,n=3,K=9,7 is always a test set in PG(2,4), which are ; 
     % (m,n)=(1,4), K=13 in PG(2,9) is a baer subplane. K=28 is the unital.
-    definput = {'9','0','1','4','28'};  
+    definput = {'9','3','1','4','28'};  
     
     % Show the dialog and get user input (returns a cell array of strings)
     answer=inputdlg(prompt, dlgtitle, dims, definput);
-    %answer={'4','0','1','3','9'}; % To test the speed by defaulting the window.
+    %answer={'9','3','1','4','28'}; % To test the speed by defaulting the window.
     
     %% Setup for the projective space.
     q=str2double(answer{1});  % Finite field type;
     q_factors=factor(q); 
     p=q_factors(1); h=length(q_factors); 
-    
-    AG=str2double(answer{2});  % Dual affine space or not.
+    D=str2double(answer{2}); 
+    AG=0; % Dual affine space or not.
     
     
     %% Setup for intersection set.
@@ -43,7 +43,7 @@ function Configuration()
     end
     
     % If AG=2, then when generating lines, a point and all incidence lines will be deleted.
-    if AG==1 && D==3
+    if AG==2 && D==3
         NumP=q^D-1; NumL=q^(D-1);
     end
 

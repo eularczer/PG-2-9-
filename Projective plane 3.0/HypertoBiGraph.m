@@ -4,7 +4,6 @@
 function[BiGraph]=HypertoBiGraph()
     % Configurations.
     global P; global L;
-
     % Set an offset for points P and lines L.
     Offset=size(P,1);    
     % Use graph (s,t) to construct the graph. s means points P, t lines L. 

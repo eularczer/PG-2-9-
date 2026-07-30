@@ -10,9 +10,6 @@ global P; global LCell; global L;
 % NumP, and NumL are the number of points and lines.  
 global D; global p; global h; global q; global NumP; global NumL;
 
-% Set D=3 as the projective plane dimension using vector space. Subsequent research may have D=4.
-D=3;
-
 % AG is the sign for affine space. If DAG=0, it is projective space. 
 % If AG=1, it is affine space; if AG=2, it is dual affine space.
 global AG;
@@ -40,10 +37,8 @@ global tm; global tn;
 % Fixing a point inside or outside K, rho, sigma repectively denote the
 % type m,n intersections lines passing through it.
 global rhom; global rhon; global sigmam; global sigman;
-    
-%AllTypemnSet=GenmnSetOldV2();
-%AllTypemnSet=GenAll3pointsSet();
-AllTypemnSet=GenmnSet();
+
+%AllTypemnSet=GenmnSet();
 
 
 %% Transform the hypergraph of (P,L) to bipartite graph. 
@@ -51,6 +46,8 @@ BiGraph=HypertoBiGraph();
 
 
 %% Remove automorphisms from AllTypemnSet.
-% TypemnSet=FinallyNoAutomorphism(BiGraph,AllTypemnSet);
+load('PG29_Unitals.mat');
+AllTypemnSet=AllTypemnSet([1:2],:);
+TypemnSet=FinallyNoAutomorphism(BiGraph,AllTypemnSet);
 
 
