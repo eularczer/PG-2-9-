@@ -1,0 +1,59 @@
+%% Test the CheckmnSet by the unitals in PG(2,9)
+
+% First generate the points and lines.
+%% Set up global values.
+% P and L are the points set and line set respectively.
+global P; global LCell; global L;
+
+% D is the dimension of vector space implemented for projective space. 
+% q is the finite field size, and p,h are its prime power factors.
+% NumP, and NumL are the number of points and lines.  
+global D; global p; global h; global q; global NumP; global NumL;
+
+% Set D=3 as the projective plane dimension using vector space. Subsequent research may have D=4.
+D=3;
+
+% AG is the sign for affine space. If DAG=0, it is projective space. 
+% If AG=1, it is affine space; if AG=2, it is dual affine space.
+global AG;
+
+% Line-type (m,n) set, and K is the size of this set. 
+global m; global n; global K;
+
+
+%% Set up configurations.
+Configuration();
+
+
+%% Generate the points.
+GenPoints();
+
+
+%% Genetrate the lines.
+GenLines()
+
+
+%% The tested known (m,n) set.
+% Generate the unitals by x^{q+1}+y^{q+1}+z^{q+1}=0.
+Unitals=[0,1,4;0,1,5;0,1,7;0,1,8;
+    1,4,0;1,5,0;1,7,0;1,8,0;
+    1,0,4;1,0,5;1,0,7;1,0,8;
+    1,1,1;1,2,1;1,3,1;1,6,1;
+    1,1,2;1,2,2;1,3,2;1,6,2; 
+    1,1,3;1,2,3;1,3,3;1,6,3;
+    1,1,6;1,2,6;1,3,6;1,6,6];
+
+% Generate the (2,5)-35 set by De Resmini, 1987, JCTA.
+FourConics_35=[1,0,0;0,1,0;0,0,1;
+    1,1,1;1,2,2;1,4,5;1,5,4;1,6,3;1,3,6;1,7,8;1,8,7;
+    1,8,1;1,1,8;1,3,5;1,5,3;1,2,4;1,4,2;1,6,7;1,7,6;];
+
+
+
+
+[A,B]=CheckmnSet(Unitals,zeros(0,2))
+
+
+
+
+
